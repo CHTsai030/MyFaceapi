@@ -1,0 +1,152 @@
+﻿<!--How to upload a file using an ajax call in flask
+https://stackoverflow.com/questions/18334717/how-to-upload-a-file-using-an-ajax-call-in-flask-->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Face Analysis</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700&display=swap" rel="stylesheet">
+    <link href="../static/css/sty1.css" rel="stylesheet" />
+    <style>
+        input {
+            padding: 5px 15px;
+            border: 0 none;
+            cursor: pointer;
+            border-radius: 5px;
+            height: 32px;
+        }
+
+        .resp {
+            margin: 0;            
+            line-height: 30px;
+        }
+
+        .emo {
+            margin-left: 15px;
+        }
+
+        div.res {
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+
+        #errp {
+            margin: 30px;
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 80px;
+        }
+
+        .btn1 {
+            width: 100px;
+            background-color: rgb(235, 240, 198);
+            color: rgb(16, 117, 87);
+            font-size: 15px;
+            font-weight: bolder;            
+            font-family: 'Noto Sans TC', sans-serif;
+            border-radius: 5px;
+            line-height: 33px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <script src="../static/js/navbar.js"></script>
+
+    <div class="all">
+        <h1 class="title">Face Analysis:</h1>
+        <form id="upload-file" method="post" enctype="multipart/form-data" action="/face">
+            <fieldset>
+                <label for="photourl_11" class="btn1">照片網址:</label>
+                <input id="image" name="photourl_11" type="text" size="50" />                
+                <button id="upload-file-btn" type="button" class="btn" onclick="textempty();getfacetext();getfaceimg() ">分析</button>
+            </fieldset>
+        </form>
+        <div id="wrapper" style="width:100%; display:table;">
+            <div id="jsonOutput">
+                <p class="p">Response:</p>
+            </div>
+            <div id="separate"></div>
+            <div id="imageDiv">
+                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-camera" viewBox="0 0 16 16" style="float: left; margin:10px 10px;">
+                    <path fill-rule="evenodd" d="M15 12V6a1 1 0 0 0-1-1h-1.172a3 3 0 0 1-2.12-.879l-.83-.828A1 1 0 0 0 9.173 3H6.828a1 1 0 0 0-.707.293l-.828.828A3 3 0 0 1 3.172 5H2a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z" />
+                    <path fill-rule="evenodd" d="M8 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
+                    <path d="M3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z" />
+                </svg>
+                <p class="p" style="width:90%">source image</p>
+                <img id="imgPreview" width="100%" />
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function () {            
+            $("#wrapper").hide();
+        });
+        function getfaceimg() {
+            $("#wrapper").fadeIn("5000");            
+            $("#imgPreview").attr('src', $("#image").val())
+            var urlvalue = new FormData($('#upload-file')[0]);
+            $.ajax({
+                type: 'POST',
+                url: 'http://localhost:8080/face',
+                data: urlvalue,
+                contentType: false,
+                //cache: false,
+                processData: false,
+                //success: function (data) {
+
+                //}
+            }).done(function (url) {
+                
+                $("#imgPreview").attr('src', url);
+            }).fail(function (err) {
+                alert(err.statusText);
+            });
+        }
+        function getfacetext() {   
+            $.ajax({
+                type: 'get',
+                url: 'http://localhost:8080/facetext',
+                data: "json",
+                contentType: false,
+                processData: false,
+
+            }).done(function (result) {
+               
+                if (JSON.stringify(result) == "[]")
+                    $("#jsonOutput").html("<p class='p'>Response:</p><p id='errp'>無法分析</p>");
+                else
+                    var str = "<p class='p'>Response:</p>";
+                $.each(result, function (index, predict) {
+                    age = result[index]["faceAttributes"].age;
+                    emotion = result[index]["faceAttributes"].emotion;
+                    gender = result[index]["faceAttributes"].gender;
+                    var emotionstr = "<div class='emo'><p class='resp'>心情分析:</p></div>";
+                    anger = result[index]["faceAttributes"].emotion.anger;
+                    contempt = emotion.contempt;
+                    disgust = emotion.disgust;
+                    fear = emotion.fear;
+                    happiness = emotion.happiness;
+                    neutral = emotion.neutral;
+                    sadness = emotion.sadness;
+                    surprise = emotion.surprise;
+                    emotionstr += "<div class='emo'><p class='resp'>anger:" + anger + "</p>  <p class='resp'>contempt:" + contempt + "</p>  <p class='resp'>disgust: " + disgust + "</p>  <p class='resp'>fear: " + fear + "</p>  <p class='resp'>happiness: " + happiness + "</p>  <p class='resp'>neutral: " + neutral + "</p>  <p class='resp'>sadness: " + sadness + "</p>  <p class='resp'>surprise: " + surprise + "</p></div>"
+                    index = index + 1;
+                    str += "<div class='res'><p class='resp'>" + index + ". 性別:" + gender + "  年齡: " + age + "</p>" + emotionstr + "</div>";
+                    
+                });
+                $("#jsonOutput").html(str);
+            }).fail(function (err) {
+                alert(err.statusText);
+            });
+        }
+        function textempty() {
+            $("#jsonOutput").empty();
+            $("#imgPreview").empty();
+        }
+       
+    </script>
+</body>
+</html>

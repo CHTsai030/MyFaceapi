@@ -1,0 +1,91 @@
+﻿<!--How to upload a file using an ajax call in flask
+https://stackoverflow.com/questions/18334717/how-to-upload-a-file-using-an-ajax-call-in-flask-->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Detect Image</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700&display=swap" rel="stylesheet">
+    <link href="../static/css/sty1.css" rel="stylesheet" />
+</head>
+<body>
+    <script src="../static/js/navbar.js"></script>
+
+    <div class="all">
+        <h1 class="title">Detect Image:</h1>
+        <form id="upload-file" method="post" enctype="multipart/form-data">
+            <fieldset>
+                <label class="btn" style="margin-left:700px">
+                    <input id="image" style="display:none;" type="file" name="image">
+                    <i class="fa fa-photo"></i> 上傳圖片
+                </label>
+                <button id="upload-file-btn" type="button" class="btn">分析</button>
+
+            </fieldset>
+        </form>
+        <div id="wrapper">
+            <div id="jsonOutput">
+                <p class="p">Response:</p>
+            </div>
+            <div id="separate"></div>
+            <div id="imageDiv">
+                <!-- --------------------------------------- -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-camera" viewBox="0 0 16 16" style="float: left; margin:10px 10px;">
+                    <path fill-rule="evenodd" d="M15 12V6a1 1 0 0 0-1-1h-1.172a3 3 0 0 1-2.12-.879l-.83-.828A1 1 0 0 0 9.173 3H6.828a1 1 0 0 0-.707.293l-.828.828A3 3 0 0 1 3.172 5H2a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z" />
+                    <path fill-rule="evenodd" d="M8 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
+                    <path d="M3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z" />
+                </svg>
+                <p class="p" style="width:90%">source image</p>
+                <!-- --------------------------------------- -->
+                <img id="imgPreview" width="100%">
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function () {
+            $("#wrapper").hide();
+        });
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#imgPreview').attr('src', e.target.result);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        $("#image").change(function () {
+            readURL(this);
+            $("#wrapper").fadeIn("5000");
+        });
+
+        $('#upload-file-btn').click(function () {
+            var form_data = new FormData($('#upload-file')[0]);
+            $.ajax({
+                type: 'POST',
+                url: 'http://localhost:8080/predict',
+                data: form_data,
+                contentType: false,
+                //cache: false,
+                processData: false,
+            }).done(function (result) {
+                var str = "<p class='p'>Response:</p>";
+                $.each(result["predictions"], function (index, predict) {
+                    index = index + 1;
+                    predict.probability = (predict.probability * 100).toFixed(2);
+                    str += "<p class=res>" + index + ". " + predict.label + " : " + predict.probability + "%</p>";
+                });
+                $("#jsonOutput").html(str);
+            }).fail(function (err) {
+                alert(err.statusText);
+            });
+        });
+
+    </script>
+</body>
+</html>
