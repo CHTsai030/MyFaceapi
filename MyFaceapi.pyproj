@@ -34,7 +34,6 @@
     <Content Include="static\js\navbar.js" />
     <Content Include="templates\FaceAnalysis.html" />
     <Content Include="templates\index.html" />
-    <Content Include="templates\navbar.html" />
     <Content Include="templates\DetectImage.html" />
   </ItemGroup>
   <ItemGroup>
